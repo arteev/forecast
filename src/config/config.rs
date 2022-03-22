@@ -7,12 +7,17 @@ use directories::{ProjectDirs};
 
 use crate::error::error::Error;
 use super::args;
+use super::yandex::ConfigYandex;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub provider: String,
     pub display: String,
+
+    //TODO: сделать динамически подключаемым либо парсить отдельно для провайдера
+    pub yandex: Option<ConfigYandex>,
 }
+
 
 impl Config {
     pub fn new() -> Result<Self, Error> {
