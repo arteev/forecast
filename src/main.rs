@@ -1,5 +1,11 @@
+/*
+Inspired by:
+    https://github.com/kamek-pf/polybar-forecast
+ */
+
 mod config;
 mod error;
+mod temperature;
 
 use std::process;
 use error::error::Error;
