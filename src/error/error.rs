@@ -1,4 +1,3 @@
-use std::fmt::Error as e2;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

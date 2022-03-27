@@ -71,6 +71,12 @@ impl Ord for Temperature {
     }
 }
 
+impl Display for Temperature {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.0, self.1)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -132,5 +138,13 @@ mod tests {
         assert_eq!(format!("10{}", Celsius), "10°C");
         assert_eq!(format!("1{}", Fahrenheit), "1°F");
         assert_eq!(format!("100{}", Kelvin), "100K");
+    }
+
+    #[test]
+    fn temp_display() {
+        use Unit::*;
+        assert_eq!(format!("{}", Temperature::new(10, Celsius)), "10°C");
+        assert_eq!(format!("{}", Temperature::new(247, Fahrenheit)), "247°F");
+        assert_eq!(format!("{}", Temperature::new(90, Kelvin)), "90K");
     }
 }

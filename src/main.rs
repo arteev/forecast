@@ -23,5 +23,5 @@ fn main() {
     }
 
     let t = temperature::Temperature::new(15, temperature::Unit::Celsius);
-    print!("{:?}\n", t);
+    print!("{}\n", t);
 }
