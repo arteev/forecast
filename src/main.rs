@@ -21,4 +21,7 @@ fn main() {
         eprintln!("{}", err);
         process::exit(1);
     }
+
+    let t = temperature::Temperature::new(15, temperature::Unit::Celsius);
+    print!("{:?}\n", t);
 }

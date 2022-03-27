@@ -70,3 +70,67 @@ impl Ord for Temperature {
         self.val().cmp(&other.as_unit(self.unit()).val())
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_converter() {
+        use Unit::*;
+
+        assert_eq!(
+            Temperature(0, Celsius).as_unit(Fahrenheit),
+            Temperature(32, Fahrenheit)
+        );
+
+        assert_eq!(
+            Temperature(-50, Celsius).as_unit(Kelvin),
+            Temperature(223.15 as i16, Kelvin)
+        );
+
+        assert_eq!(
+            Temperature(32, Fahrenheit).as_unit(Celsius),
+            Temperature(0, Celsius)
+        );
+
+        assert_eq!(
+            Temperature(-459.67 as i16, Fahrenheit).as_unit(Kelvin),
+            Temperature(0, Kelvin)
+        );
+
+        assert_eq!(
+            Temperature(223.15 as i16, Kelvin).as_unit(Celsius),
+            Temperature(-50, Celsius)
+        );
+
+        assert_eq!(
+            Temperature(0, Kelvin).as_unit(Fahrenheit),
+            Temperature(-459.67 as i16, Fahrenheit)
+        );
+
+        assert_ne!(
+            Temperature(5, Celsius),
+            Temperature(4, Celsius)
+        )
+    }
+
+    #[test]
+    fn unit_cmp() {
+        use Unit::*;
+        assert!(Temperature(0, Celsius) <= Temperature(0, Celsius));
+        assert!(!(Temperature(0, Celsius) < Temperature(0, Celsius)));
+
+        assert!(Temperature(1, Celsius) > Temperature(30, Fahrenheit));
+        assert!(Temperature(100, Kelvin) < Temperature(25, Celsius));
+    }
+
+    #[test]
+    fn unit_display() {
+        use Unit::*;
+        assert_eq!(format!("10{}", Celsius), "10°C");
+        assert_eq!(format!("1{}", Fahrenheit), "1°F");
+        assert_eq!(format!("100{}", Kelvin), "100K");
+    }
+}
