@@ -1,4 +1,4 @@
 pub mod config;
 
 mod args;
-mod yandex;
+pub mod yandex;
