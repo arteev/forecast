@@ -4,9 +4,11 @@ use serde::Deserialize;
 pub struct ConfigYandex {
     pub api_key: String,
     // широта
-    pub lat: f64,
+    pub lat: String,
     // долгота
-    pub lon: f64,
+    pub lon: String,
     // язык ответа
     pub lang: Option<String>,
+    // user-agent
+    pub user_agent: String,
 }

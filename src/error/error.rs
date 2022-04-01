@@ -10,4 +10,13 @@ pub enum Error {
 
     #[error("Failed read config file")]
     FailedReadConfig,
+
+    #[error("Failed to query: {}", _0)]
+    HttpError(#[from] reqwest::Error),
+
+    #[error("Invalid request: {text:?}({code:?})")]
+    InvalidRequest{
+        text: String,
+        code: u16,
+    },
 }
