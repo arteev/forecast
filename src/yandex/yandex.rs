@@ -54,7 +54,6 @@ impl<'a> WeatherGetter for Yandex<'a> {
         }
         let res: Value = response.json()?;
 
-
         parse(res).ok_or(Error::InvalidResponse)
     }
 }

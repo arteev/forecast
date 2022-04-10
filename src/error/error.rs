@@ -22,4 +22,7 @@ pub enum Error {
 
     #[error("Invalid response")]
     InvalidResponse,
+
+    #[error("Failed to render: {}", _0)]
+    FailedRender(#[from] handlebars::RenderError),
 }

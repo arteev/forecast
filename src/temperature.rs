@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Unit {
     Celsius,
     Fahrenheit,
