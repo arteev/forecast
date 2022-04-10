@@ -15,8 +15,11 @@ pub enum Error {
     HttpError(#[from] reqwest::Error),
 
     #[error("Invalid request: {text:?}({code:?})")]
-    InvalidRequest{
+    InvalidRequest {
         text: String,
         code: u16,
     },
+
+    #[error("Invalid response")]
+    InvalidResponse,
 }
