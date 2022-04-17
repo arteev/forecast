@@ -5,6 +5,9 @@ pub enum Error {
     #[error("Invalid config file: {}", _0)]
     InvalidConfig(#[from] toml::de::Error),
 
+    #[error("Invalid config file: {0}")]
+    InvalidConfigCheck (String),
+
     #[error("Missing config file")]
     MissingConfig,
 
