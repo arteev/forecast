@@ -1,29 +1,31 @@
 use std::{fs, vec};
+
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, USER_AGENT};
+use serde::Serialize;
+use serde_json::Value;
+
 use crate::config::yandex::ConfigYandex;
 use crate::Error;
+use crate::Error::InvalidRequest;
 use crate::temperature::Temperature;
 use crate::temperature::Unit::Celsius;
 use crate::weather::provider::{WeatherGetter, WeatherQueryType};
 use crate::weather::weather::{Condition, Forecast, ForecastPart, WeatherInfo};
-use serde_json::Value;
-use serde::Serialize;
-use crate::Error::{InvalidRequest};
 
 const API_URL: &str = "https://api.weather.yandex.ru/v2/informers?";
 
-pub struct Yandex<'a> {
-    config: &'a ConfigYandex,
+pub struct Yandex {
+    config: ConfigYandex,
 }
 
-impl<'a> Yandex<'a> {
-    pub fn new(config: &'a ConfigYandex) -> Yandex<'a> {
+impl Yandex {
+    pub fn new(config: ConfigYandex) -> Self {
         Yandex { config }
     }
 }
 
-impl<'a> WeatherGetter for Yandex<'a> {
+impl WeatherGetter for Yandex {
     fn get(&self, _: Vec<WeatherQueryType>) -> Result<WeatherInfo, Error> {
         let query_params = QueryParamsInformers {
             lon: self.config.lon.as_str(),
@@ -70,6 +72,7 @@ fn parse(response: Value) -> Option<WeatherInfo> {
 
 
     Some(WeatherInfo {
+        is_cached: false,
         temp: Temperature::new(temperature as i16, Celsius),
         feels_like: Some(Temperature::new(temperature_like as i16, Celsius)),
         humidity: response["fact"]["humidity"].as_u64(),

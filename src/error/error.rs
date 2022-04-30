@@ -28,4 +28,7 @@ pub enum Error {
 
     #[error("Failed to render: {}", _0)]
     FailedRender(#[from] handlebars::RenderError),
+
+    #[error("failed to parse: {}", _0)]
+    Parse(#[from] serde_json::Error),
 }

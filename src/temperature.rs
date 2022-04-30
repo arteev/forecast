@@ -1,7 +1,9 @@
 use std::cmp::Ordering;
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+use serde::{Deserialize, Serialize, Serializer};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Unit {
     Celsius,
     Fahrenheit,
@@ -19,7 +21,7 @@ impl Display for Unit {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq)]
+#[derive(Debug, Clone, Copy, Eq, Serialize, Deserialize)]
 pub struct Temperature(i16, Unit);
 
 impl Temperature {
