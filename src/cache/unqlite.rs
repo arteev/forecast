@@ -3,6 +3,7 @@ extern crate unqlite;
 use std::ops::Add;
 use std::time::{Duration, SystemTime};
 
+use serde::Serialize;
 use unqlite::{Config, Cursor, KV, UnQLite};
 
 use crate::{WeatherGetter, WeatherQueryType};
@@ -43,12 +44,14 @@ impl UnQLiteCache {
         }
     }
 
-    fn ttl(&self, key: &str, d: Duration) {
+    fn ttl(&self, key: &str, d: Duration) -> Result<(), Error> {
         let key_ttl = format!("{}_ttl", key);
         let expiration = SystemTime::now()
             .add(d);
-        let serialized = serde_json::to_string(&expiration).unwrap();
-        self.unqlite.kv_store(key_ttl, serialized).unwrap();
+        let serialized = serde_json::to_string(&expiration)?;
+        self.unqlite.kv_store(key_ttl, serialized).ok().ok_or(
+            Error::InvalidCache("store TTL".to_string()))?;
+        Ok(())
     }
 }
 
@@ -61,14 +64,15 @@ impl WeatherGetter for UnQLiteCache {
                 let s = std::str::from_utf8(&data).unwrap();
                 let mut weather: WeatherInfo = serde_json::from_str(s)?;
                 weather.is_cached = true;
-                self.ttl(&KEY, self.ttl);
                 return Ok(weather);
             }
         }
-
         let response = self.next.get(types)?;
         let serialized = serde_json::to_string(&response).unwrap();
-        self.unqlite.kv_store(KEY, serialized).unwrap();
+        self.unqlite.kv_store(KEY, serialized).ok().ok_or(
+            Error::InvalidCache("store weather".to_string())
+        )?;
+        self.ttl(&KEY, self.ttl)?;
         Ok(response)
     }
 }

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::format;
+use std::time::SystemTime;
 
 use serde::{Deserialize, Serialize, Serializer};
 use serde::ser::SerializeStruct;
@@ -10,12 +11,20 @@ use crate::temperature::{Temperature, Unit::*};
 pub struct WeatherInfo {
     #[serde(default)]
     pub is_cached: bool,
+
+    #[serde(default = "default_created_at" )]
+    pub created_at:  SystemTime,
+
     pub temp: Temperature,
     pub feels_like: Option<Temperature>,
     pub humidity: Option<u64>,
     pub icon: Option<String>,
     pub condition: Option<Condition>,
     pub forecasts: Option<Forecast>,
+}
+
+fn default_created_at() -> SystemTime {
+    SystemTime::now()
 }
 
 #[derive(Serialize, Deserialize, Debug)]

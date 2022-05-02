@@ -28,8 +28,9 @@ fn weather() -> Result<String, Error> {
 
     if let Some(cache) = c.cache {
         if cache.enabled {
-            provider = Box::new(UnQLiteCache::new(provider,
-                                                  "/home/inf/cache.unqlite",
+            let user = std::env::var("USER").unwrap_or("user".to_string());
+            let path = format!("/home/{}/cache.unqlite", user);
+            provider = Box::new(UnQLiteCache::new(provider, &path,
                                                   cache.expiration.unwrap().into()));
         }
     }

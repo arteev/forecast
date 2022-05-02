@@ -1,4 +1,5 @@
 use std::{fs, vec};
+use std::time::SystemTime;
 
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, USER_AGENT};
@@ -73,6 +74,7 @@ fn parse(response: Value) -> Option<WeatherInfo> {
 
     Some(WeatherInfo {
         is_cached: false,
+        created_at: SystemTime::now(),
         temp: Temperature::new(temperature as i16, Celsius),
         feels_like: Some(Temperature::new(temperature_like as i16, Celsius)),
         humidity: response["fact"]["humidity"].as_u64(),

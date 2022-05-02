@@ -31,4 +31,7 @@ pub enum Error {
 
     #[error("failed to parse: {}", _0)]
     Parse(#[from] serde_json::Error),
+
+    #[error("Cache error: {0}")]
+    InvalidCache(String),
 }
