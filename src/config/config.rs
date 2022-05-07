@@ -24,7 +24,7 @@ pub enum Provider {
 pub struct Config {
     pub provider: Provider,
 
-    #[serde(default = "default_display" )]
+    #[serde(default = "default_display")]
     pub display: String,
 
     pub cache: Option<Cache>,
@@ -68,6 +68,10 @@ impl Config {
         }?;
         let content = fs::read_to_string(&path).ok().ok_or(Error::FailedReadConfig)?;
         let mut cfg: Config = toml::from_str(&content)?;
+
+        if cfg.cache.is_some() && arguments.no_cache {
+            cfg.cache = None
+        }
 
         cfg.check()?;
         Ok(cfg)
