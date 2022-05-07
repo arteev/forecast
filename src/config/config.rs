@@ -13,7 +13,7 @@ use crate::error::error::Error;
 use super::args;
 use super::yandex::ConfigYandex;
 
-static DEFAULT_DISPLAY: &str = "{{ temperature_celsius }}";
+static DEFAULT_DISPLAY: &str = "{{ temperature_celsius_full }}";
 
 #[derive(Debug, Deserialize, Clone)]
 pub enum Provider {
@@ -23,12 +23,18 @@ pub enum Provider {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub provider: Provider,
-    pub display: Option<String>,
+
+    #[serde(default = "default_display" )]
+    pub display: String,
 
     pub cache: Option<Cache>,
 
     //TODO: сделать динамически подключаемым либо парсить отдельно для провайдера
     pub yandex: Option<ConfigYandex>,
+}
+
+fn default_display() -> String {
+    DEFAULT_DISPLAY.to_string()
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -62,9 +68,7 @@ impl Config {
         }?;
         let content = fs::read_to_string(&path).ok().ok_or(Error::FailedReadConfig)?;
         let mut cfg: Config = toml::from_str(&content)?;
-        if cfg.display.is_none() {
-            cfg.display = Some(DEFAULT_DISPLAY.to_string())
-        }
+
         cfg.check()?;
         Ok(cfg)
     }
