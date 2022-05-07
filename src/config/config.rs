@@ -27,8 +27,6 @@ pub struct Config {
 
     pub cache: Option<Cache>,
 
-    pub ratelimit: Option<RateLimit>,
-
     //TODO: сделать динамически подключаемым либо парсить отдельно для провайдера
     pub yandex: Option<ConfigYandex>,
 }
@@ -39,12 +37,6 @@ pub struct Cache {
     pub expiration: Option<DurationString>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct RateLimit {
-    pub enabled: bool,
-    pub limit: u32,
-    pub period: Period,
-}
 
 #[derive(Debug, Deserialize, Clone)]
 pub enum Period {
@@ -78,13 +70,6 @@ impl Config {
     }
 
     fn check(&self) -> Result<(), Error> {
-        if let Some(rate) = &self.ratelimit {
-            if rate.enabled {
-                if rate.limit == 0 {
-                    return Err(Error::InvalidConfigCheck(format!("wrong limit value {}", rate.limit)));
-                }
-            }
-        }
         if let Some(cache) = &self.cache {
             if cache.enabled {
                 if cache.expiration.is_none() {
@@ -92,7 +77,6 @@ impl Config {
                 }
             }
         }
-        println!("{:?}\n", self);
         Ok(())
     }
 }
