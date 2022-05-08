@@ -31,7 +31,8 @@ fn weather() -> Result<String, Error> {
             let user = std::env::var("USER").unwrap_or("user".to_string());
             let path = format!("/home/{}/cache.unqlite", user);
             provider = Box::new(UnQLiteCache::new(provider, &path,
-                                                  cache.expiration.unwrap().into()));
+                                                  cache.expiration.unwrap().into(),
+                                                  c.prefer_cache_error));
         }
     }
 

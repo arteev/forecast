@@ -10,6 +10,8 @@ use crate::{WeatherGetter, WeatherQueryType};
 use crate::Error;
 use crate::weather::weather::WeatherInfo;
 
+const KEY: &str = "weather";
+
 pub struct Cache<T>(T);
 
 
@@ -17,15 +19,17 @@ pub struct UnQLiteCache {
     next: Box<dyn WeatherGetter>,
     ttl: Duration,
     unqlite: UnQLite,
+    prefer_cache: bool,
 }
 
 impl UnQLiteCache {
-    pub fn new(next: Box<dyn WeatherGetter>, filename: &str, ttl: Duration) -> Self {
+    pub fn new(next: Box<dyn WeatherGetter>, filename: &str, ttl: Duration, prefer_cache: bool) -> Self {
         let unqlite = UnQLite::create(filename);
         UnQLiteCache {
             next,
             ttl,
             unqlite,
+            prefer_cache,
         }
     }
 
@@ -53,22 +57,38 @@ impl UnQLiteCache {
             Error::InvalidCache("store TTL".to_string()))?;
         Ok(())
     }
+
+    fn get_from_cache(&self) -> Result<WeatherInfo, Error> {
+        let cached = self.unqlite.kv_fetch(KEY);
+        match cached {
+            Ok(data) => {
+                let s = std::str::from_utf8(&data).unwrap();
+                let mut weather: WeatherInfo = serde_json::from_str(s)?;
+                weather.is_cached = true;
+                Ok(weather)
+            }
+            Err(e) => Err(Error::InvalidCache(e.to_string())),
+        }
+    }
 }
 
 impl WeatherGetter for UnQLiteCache {
     fn get(&self, types: Vec<WeatherQueryType>) -> Result<WeatherInfo, Error> {
-        const KEY: &str = "weather";
         if !self.is_expired(&KEY) {
-            let cached = self.unqlite.kv_fetch(KEY);
-            if let Ok(data) = cached {
-                let s = std::str::from_utf8(&data).unwrap();
-                let mut weather: WeatherInfo = serde_json::from_str(s)?;
-                weather.is_cached = true;
-                return Ok(weather);
+            let w = self.get_from_cache();
+            if w.is_ok() {
+                return w;
             }
         }
-        let response = self.next.get(types)?;
+        let response = self.next.get(types);
+        if response.is_err() && self.prefer_cache {
+            return self.get_from_cache()
+        }
+
+        let response = response?;
+
         let serialized = serde_json::to_string(&response).unwrap();
+
         self.unqlite.kv_store(KEY, serialized).ok().ok_or(
             Error::InvalidCache("store weather".to_string())
         )?;

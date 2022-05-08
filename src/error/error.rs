@@ -34,4 +34,5 @@ pub enum Error {
 
     #[error("Cache error: {0}")]
     InvalidCache(String),
+
 }

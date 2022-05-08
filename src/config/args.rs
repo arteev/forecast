@@ -8,6 +8,9 @@ pub struct Args {
 
     #[clap(short, long)]
     pub no_cache: bool,
+
+    #[clap(short, long)]
+    pub prefer_cache_error: bool,
 }
 
 pub fn parse() -> Args {

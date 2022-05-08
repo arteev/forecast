@@ -31,6 +31,9 @@ pub struct Config {
 
     //TODO: сделать динамически подключаемым либо парсить отдельно для провайдера
     pub yandex: Option<ConfigYandex>,
+
+    #[serde(default)]
+    pub prefer_cache_error: bool,
 }
 
 fn default_display() -> String {
@@ -72,6 +75,7 @@ impl Config {
         if cfg.cache.is_some() && arguments.no_cache {
             cfg.cache = None
         }
+        cfg.prefer_cache_error = arguments.prefer_cache_error;
 
         cfg.check()?;
         Ok(cfg)
