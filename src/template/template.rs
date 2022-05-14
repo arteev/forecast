@@ -22,6 +22,7 @@ struct WeatherInfoTemplate {
     created_at: SystemTime,
     temp: Temperature,
     feels_like: Option<Temperature>,
+    pub humidity: Option<u64>,
 }
 
 
@@ -32,6 +33,7 @@ impl WeatherInfoTemplate {
             created_at: w.created_at,
             temp: w.temp,
             feels_like: w.feels_like,
+            humidity: w.humidity,
 
         }
     }
@@ -72,10 +74,11 @@ impl Serialize for WeatherInfoTemplate {
                 s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
             }
         }
+        if let Some(humidity) = self.humidity {
+            s.serialize_field("humidity", &humidity)?;
+        }
         /*
-           if let Some(humidity) = self.humidity {
-                   s.serialize_field("humidity", &humidity)?;
-               }
+
 
                if let Some(forecasts) = &self.forecasts {
                    for (i, part) in forecasts.parts.iter().enumerate() {
