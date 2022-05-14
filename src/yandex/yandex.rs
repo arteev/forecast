@@ -1,4 +1,3 @@
-use std::{fs, vec};
 use std::time::SystemTime;
 
 use reqwest::blocking::Client;

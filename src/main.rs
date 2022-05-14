@@ -37,12 +37,11 @@ fn weather() -> Result<String, Error> {
     }
 
     let w = provider.get(vec![WeatherQueryType::All])?;
-   // println!("{:?}", w);
 
     let display = c.display.to_owned();
     let tmpl = Template::new(display.as_str());
 
-    tmpl.render(&w)
+    tmpl.render(&w, c.debug)
 }
 
 fn main() {

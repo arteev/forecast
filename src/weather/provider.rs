@@ -3,8 +3,8 @@ use crate::weather::weather::WeatherInfo;
 
 pub enum WeatherQueryType {
     All,
-    Current,
-    Forecast,
+    //Current,
+    //Forecast,
 }
 
 pub trait WeatherGetter {

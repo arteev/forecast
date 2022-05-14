@@ -11,6 +11,9 @@ pub struct Args {
 
     #[clap(short, long)]
     pub prefer_cache_error: bool,
+
+    #[clap(short, long)]
+    pub debug: bool,
 }
 
 pub fn parse() -> Args {

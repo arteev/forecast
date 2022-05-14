@@ -1,14 +1,11 @@
 extern crate chrono;
 
 use std::collections::HashMap;
-use std::fmt::format;
 use std::time::SystemTime;
 
 use chrono::{DateTime, Local};
-use chrono::offset::Utc;
-use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, JsonRender, Output, RenderContext, RenderError, ScopedJson};
-use serde::{Deserializer, Serialize, Serializer};
-use serde::de::IntoDeserializer;
+use handlebars::{Context, Handlebars, Helper, HelperDef, HelperResult, Output, RenderContext};
+use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
 
 use crate::Error;
@@ -16,8 +13,33 @@ use crate::temperature::Temperature;
 use crate::temperature::Unit::*;
 use crate::weather::weather::WeatherInfo;
 
+const TEMPLATE_DEBUG: &str = r#"
+Weather template variables:
+
+    cache: {{ cache }}
+
+    created format="%H:%M": {{ created format="%H:%M "}}
+    created: {{ created }}
+
+    temperature_celsius: {{ temperature_celsius }}
+    temperature_celsius_full: {{ temperature_celsius_full }}
+    temperature_kelvin: {{ temperature_kelvin }}
+    temperature_kelvin_full: {{ temperature_kelvin_full }}
+    temperature_fahrenheit: {{ temperature_fahrenheit }}
+    temperature_fahrenheit_full: {{ temperature_fahrenheit_full }}
+
+    humidity: {{ humidity }}
+
+    feel_temperature_celsius: {{ feel_temperature_celsius }}
+    feel_temperature_celsius_full: {{ feel_temperature_celsius_full }}
+    feel_temperature_kelvin: {{ feel_temperature_kelvin }}
+    feel_temperature_kelvin_full: {{ feel_temperature_kelvin_full }}
+    feel_temperature_fahrenheit: {{ feel_temperature_fahrenheit }}
+    feel_temperature_fahrenheit_full: {{ feel_temperature_fahrenheit_full }}
+
+     "#;
+
 struct WeatherInfoTemplate {
-    //"{{ temperature_celsius }}/{{ temperature_celsius_full }}/{{ feel_temperature_celsius_full }} h:{{ humidity }}% forecast:{{ forecast_0_humidity}}"
     is_cached: bool,
     created_at: SystemTime,
     temp: Temperature,
@@ -54,10 +76,6 @@ impl Serialize for WeatherInfoTemplate {
         s.serialize_field("cache", &format!("{}", self.is_cached))?;
 
         s.serialize_field("date", &self.created_at)?;
-
-        let datetime: DateTime<Local> = self.created_at.into();
-        //s.serialize_field("date", &format!("{}", datetime.format("%D")))?;
-        //s.serialize_field("time", &format!("{}", datetime.format("%T")))?;
 
         for unit in vec![Celsius, Kelvin, Fahrenheit] {
             let t_c = self.temp.as_unit(unit);
@@ -140,14 +158,17 @@ impl<'a> Template<'a> {
         }
     }
 
-    pub fn render(&self, w: &WeatherInfo) -> Result<String, Error> {
+    pub fn render(&self, w: &WeatherInfo, debug: bool) -> Result<String, Error> {
         let weather = WeatherInfoTemplate::from(w);
 
         let mut reg = Handlebars::new();
         //reg.set_strict_mode(true);
         reg.register_helper("created", Box::new(DateHelper));
 
-        let out = reg.render_template(self.template, &weather)?;
+        let template = if debug { TEMPLATE_DEBUG } else { self.template };
+
+        let out = reg.render_template(template, &weather)?;
+
         Ok(out)
     }
 }
@@ -156,8 +177,8 @@ impl<'a> Template<'a> {
 struct DateHelper;
 
 impl HelperDef for DateHelper {
-    fn call<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, r: &'reg Handlebars<'reg>,
-                            ctx: &'rc Context, rc: &mut RenderContext<'reg, 'rc>,
+    fn call<'reg: 'rc, 'rc>(&self, h: &Helper<'reg, 'rc>, _: &'reg Handlebars<'reg>,
+                            ctx: &'rc Context, _: &mut RenderContext<'reg, 'rc>,
                             out: &mut dyn Output) -> HelperResult {
         let fmt = match h.hash_get("format").map(|v| v.value()) {
             Some(v) => v.as_str().unwrap().to_string(),
@@ -167,7 +188,7 @@ impl HelperDef for DateHelper {
         let date = obj.get("date").unwrap().clone();
         let created_at: SystemTime = serde_json::from_value(date)?;
         let datetime: DateTime<Local> = created_at.into();
-        out.write(&format!("{}", datetime.format(&fmt)));
+        let _ = out.write(&format!("{}", datetime.format(&fmt)));
 
         Ok(())
     }

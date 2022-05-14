@@ -3,17 +3,13 @@ extern crate unqlite;
 use std::ops::Add;
 use std::time::{Duration, SystemTime};
 
-use serde::Serialize;
-use unqlite::{Config, Cursor, KV, UnQLite};
+use unqlite::{KV, UnQLite};
 
 use crate::{WeatherGetter, WeatherQueryType};
 use crate::Error;
 use crate::weather::weather::WeatherInfo;
 
 const KEY: &str = "weather";
-
-pub struct Cache<T>(T);
-
 
 pub struct UnQLiteCache {
     next: Box<dyn WeatherGetter>,
@@ -82,7 +78,7 @@ impl WeatherGetter for UnQLiteCache {
         }
         let response = self.next.get(types);
         if response.is_err() && self.prefer_cache {
-            return self.get_from_cache()
+            return self.get_from_cache();
         }
 
         let response = response?;

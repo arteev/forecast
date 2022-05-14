@@ -1,11 +1,8 @@
-use std::collections::HashMap;
-use std::fmt::format;
 use std::time::SystemTime;
 
-use serde::{Deserialize, Serialize, Serializer};
-use serde::ser::SerializeStruct;
+use serde::{Deserialize, Serialize};
 
-use crate::temperature::{Temperature, Unit::*};
+use crate::temperature::{Temperature};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WeatherInfo {

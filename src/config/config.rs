@@ -1,8 +1,6 @@
 extern crate directories;
 
 use std::fs;
-use std::path::Path;
-use std::time::Duration;
 
 use directories::ProjectDirs;
 use duration_string::DurationString;
@@ -34,6 +32,9 @@ pub struct Config {
 
     #[serde(default)]
     pub prefer_cache_error: bool,
+
+    #[serde(default)]
+    pub debug: bool,
 }
 
 fn default_display() -> String {
@@ -76,6 +77,7 @@ impl Config {
             cfg.cache = None
         }
         cfg.prefer_cache_error = arguments.prefer_cache_error;
+        cfg.debug = arguments.debug;
 
         cfg.check()?;
         Ok(cfg)
