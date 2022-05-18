@@ -2,15 +2,15 @@ use std::time::SystemTime;
 
 use serde::{Deserialize, Serialize};
 
-use crate::temperature::{Temperature};
+use crate::temperature::Temperature;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct WeatherInfo {
     #[serde(default)]
     pub is_cached: bool,
 
-    #[serde(default = "default_created_at" )]
-    pub created_at:  SystemTime,
+    #[serde(default = "default_created_at")]
+    pub created_at: SystemTime,
 
     pub temp: Temperature,
     pub feels_like: Option<Temperature>,
@@ -39,7 +39,7 @@ pub struct ForecastPart {
     pub feels_like: Option<Temperature>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Condition {
     // ясно.
     Clear,
@@ -97,4 +97,30 @@ pub enum Condition {
 
     // гроза с градом.
     ThunderstormWithHail,
+}
+
+impl Condition {
+    pub fn name(&self) -> String {
+        match *self {
+            Condition::Clear => "clear".to_string(),
+            Condition::PartlyCloudy => "partly cloudy".to_string(),
+            Condition::Cloudy => "cloudy".to_string(),
+            Condition::Overcast => "overcast".to_string(),
+            Condition::Drizzle => "drizzle".to_string(),
+            Condition::LightRain => "light rain".to_string(),
+            Condition::Rain => "rain".to_string(),
+            Condition::ModerateRain => "moderate rain".to_string(),
+            Condition::HeavyRain => "heavy rain".to_string(),
+            Condition::ContinuousHeavyRain => "continuous heavy rain".to_string(),
+            Condition::Showers => "showers".to_string(),
+            Condition::WetSnow => "wet snow".to_string(),
+            Condition::LightSnow => "light snow".to_string(),
+            Condition::Snow => "snow".to_string(),
+            Condition::SnowShowers => "snow showers".to_string(),
+            Condition::Hail => "hail".to_string(),
+            Condition::Thunderstorm => "thunderstorm".to_string(),
+            Condition::ThunderstormWithRain => "thunderstorm with rain".to_string(),
+            Condition::ThunderstormWithHail => "thunderstorm with hail".to_string(),
+        }
+    }
 }

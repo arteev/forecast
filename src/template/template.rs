@@ -11,7 +11,7 @@ use serde::ser::SerializeStruct;
 use crate::Error;
 use crate::temperature::Temperature;
 use crate::temperature::Unit::*;
-use crate::weather::weather::WeatherInfo;
+use crate::weather::weather::{Condition, Forecast, ForecastPart, WeatherInfo};
 
 const TEMPLATE_DEBUG: &str = r#"
 Weather template variables:
@@ -27,15 +27,52 @@ Weather template variables:
     temperature_kelvin_full: {{ temperature_kelvin_full }}
     temperature_fahrenheit: {{ temperature_fahrenheit }}
     temperature_fahrenheit_full: {{ temperature_fahrenheit_full }}
-
     humidity: {{ humidity }}
-
     feel_temperature_celsius: {{ feel_temperature_celsius }}
     feel_temperature_celsius_full: {{ feel_temperature_celsius_full }}
     feel_temperature_kelvin: {{ feel_temperature_kelvin }}
     feel_temperature_kelvin_full: {{ feel_temperature_kelvin_full }}
     feel_temperature_fahrenheit: {{ feel_temperature_fahrenheit }}
     feel_temperature_fahrenheit_full: {{ feel_temperature_fahrenheit_full }}
+    condition: {{ condition }}
+    condition_code: {{ condition_code }}
+
+
+    forecast_count: {{ forecast_count }}
+    
+    forecast_0_name: {{ forecast_0_name }}
+    forecast_0_temperature_celsius: {{ forecast_0_temperature_celsius }}
+    forecast_0_temperature_celsius_full: {{ forecast_0_temperature_celsius_full }}
+    forecast_0_temperature_kelvin: {{ forecast_0_temperature_kelvin }}
+    forecast_0_temperature_kelvin_full: {{ forecast_0_temperature_kelvin_full }}
+    forecast_0_temperature_fahrenheit: {{ forecast_0_temperature_fahrenheit }}
+    forecast_0_temperature_fahrenheit_full: {{ forecast_0_temperature_fahrenheit_full }}
+    forecast_0_humidity: {{ forecast_0_humidity }}
+    forecast_0_feel_temperature_celsius: {{ forecast_0_feel_temperature_celsius }}
+    forecast_0_feel_temperature_celsius_full: {{ forecast_0_feel_temperature_celsius_full }}
+    forecast_0_feel_temperature_kelvin: {{ forecast_0_feel_temperature_kelvin }}
+    forecast_0_feel_temperature_kelvin_full: {{ forecast_0_feel_temperature_kelvin_full }}
+    forecast_0_feel_temperature_fahrenheit: {{ forecast_0_feel_temperature_fahrenheit }}
+    forecast_0_feel_temperature_fahrenheit_full: {{ forecast_0_feel_temperature_fahrenheit_full }}
+    forecast_0_condition: {{ forecast_0_condition }}
+    forecast_0_condition_code: {{ forecast_0_condition_code }}
+    
+    forecast_1_name: {{ forecast_1_name }}
+    forecast_1_temperature_celsius: {{ forecast_1_temperature_celsius }}
+    forecast_1_temperature_celsius_full: {{ forecast_1_temperature_celsius_full }}
+    forecast_1_temperature_kelvin: {{ forecast_1_temperature_kelvin }}
+    forecast_1_temperature_kelvin_full: {{ forecast_1_temperature_kelvin_full }}
+    forecast_1_temperature_fahrenheit: {{ forecast_1_temperature_fahrenheit }}
+    forecast_1_temperature_fahrenheit_full: {{ forecast_1_temperature_fahrenheit_full }}
+    forecast_1_humidity: {{ forecast_1_humidity }}
+    forecast_1_feel_temperature_celsius: {{ forecast_1_feel_temperature_celsius }}
+    forecast_1_feel_temperature_celsius_full: {{ forecast_1_feel_temperature_celsius_full }}
+    forecast_1_feel_temperature_kelvin: {{ forecast_1_feel_temperature_kelvin }}
+    forecast_1_feel_temperature_kelvin_full: {{ forecast_1_feel_temperature_kelvin_full }}
+    forecast_1_feel_temperature_fahrenheit: {{ forecast_1_feel_temperature_fahrenheit }}
+    forecast_1_feel_temperature_fahrenheit_full: {{ forecast_1_feel_temperature_fahrenheit_full }}
+    forecast_1_condition: {{ forecast_1_condition }}
+    forecast_1_condition_code: {{ forecast_1_condition_code }}
 
      "#;
 
@@ -44,19 +81,41 @@ struct WeatherInfoTemplate {
     created_at: SystemTime,
     temp: Temperature,
     feels_like: Option<Temperature>,
-    pub humidity: Option<u64>,
+    humidity: Option<u64>,
+    condition: Option<Condition>,
+
+    forecasts: Option<Forecast>,
 }
 
 
 impl WeatherInfoTemplate {
     fn from(w: &WeatherInfo) -> Self {
+        let mut f: Option<Forecast> = None;
+        if let Some(forecast) = &w.forecasts {
+            let mut fv = Forecast {
+                parts: vec![],
+            };
+            for p in forecast.parts.iter() {
+                fv.parts.push(ForecastPart {
+                    name: p.name.to_string(),
+                    condition: p.condition,
+                    feels_like: p.feels_like,
+                    temp: p.temp,
+                    humidity: p.humidity,
+                    icon: p.icon.clone(),
+                });
+            }
+            f = Some(fv)
+        }
+
         WeatherInfoTemplate {
             is_cached: w.is_cached,
             created_at: w.created_at,
             temp: w.temp,
             feels_like: w.feels_like,
             humidity: w.humidity,
-
+            condition: w.condition,
+            forecasts: f,
         }
     }
 }
@@ -95,49 +154,62 @@ impl Serialize for WeatherInfoTemplate {
         if let Some(humidity) = self.humidity {
             s.serialize_field("humidity", &humidity)?;
         }
-        /*
+        if let Some(condition) = self.condition {
+            s.serialize_field("condition_code", &condition)?;
+            s.serialize_field("condition", &condition.name())?;
+        }
 
 
-               if let Some(forecasts) = &self.forecasts {
-                   for (i, part) in forecasts.parts.iter().enumerate() {
-                       for unit in vec![Celsius, Kelvin, Fahrenheit] {
-                           let t_c = part.temp.as_unit(unit);
-                           let name_field = format!("forecast_{}_temperature_{}", i, name_units.get(&unit).unwrap());
-                           let name_field_full = format!("forecast_{}_temperature_{}_full", i, name_units.get(&unit).unwrap());
-                           s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
-                           s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
+        if let Some(forecasts) = &self.forecasts {
 
-                           let name_field = format!("forecast_{}_temperature_{}", part.name, name_units.get(&unit).unwrap());
-                           let name_field_full = format!("forecast_{}_temperature_{}_full", part.name, name_units.get(&unit).unwrap());
-                           s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
-                           s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
+            s.serialize_field("forecast_count", &forecasts.parts.len())?;
 
-                           if let Some(feel) = part.feels_like {
-                               let t_c = feel.as_unit(unit);
-                               let name_field = format!("feel_forecast_{}_temperature_{}", i, name_units.get(&unit).unwrap());
-                               let name_field_full = format!("feel_forecast_{}_temperature_{}_full", i, name_units.get(&unit).unwrap());
-                               s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
-                               s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
+            for (i, part) in forecasts.parts.iter().enumerate() {
+                for unit in vec![Celsius, Kelvin, Fahrenheit] {
+                    let t_c = part.temp.as_unit(unit);
 
-                               let name_field = format!("feel_forecast_{}_temperature_{}", part.name, name_units.get(&unit).unwrap());
-                               let name_field_full = format!("feel_forecast_{}_temperature_{}_full", part.name, name_units.get(&unit).unwrap());
-                               s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
-                               s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
-                           }
+                    let name_field = format!("forecast_{}_name", i);
+                    s.serialize_field(string_to_static_str(name_field), &part.name)?;
 
-                           if let Some(humidity) = part.humidity {
-                               let name_field = format!("forecast_{}_humidity", i);
-                               s.serialize_field(string_to_static_str(name_field), &humidity)?;
-                               let name_field = format!("forecast_{}_humidity", part.name);
-                               s.serialize_field(string_to_static_str(name_field), &humidity)?;
-                           }
-                       }
+                    let name_field = format!("forecast_{}_temperature_{}", i, name_units.get(&unit).unwrap());
+                    let name_field_full = format!("forecast_{}_temperature_{}_full", i, name_units.get(&unit).unwrap());
+                    s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
+                    s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
 
+                    let name_field = format!("forecast_{}_temperature_{}", part.name, name_units.get(&unit).unwrap());
+                    let name_field_full = format!("forecast_{}_temperature_{}_full", part.name, name_units.get(&unit).unwrap());
+                    s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
+                    s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
 
-                   }
+                    if let Some(feel) = part.feels_like {
+                        let t_c = feel.as_unit(unit);
+                        let name_field = format!("forecast_{}_feel_temperature_{}", i, name_units.get(&unit).unwrap());
+                        let name_field_full = format!("forecast_{}_feel_temperature_{}_full", i, name_units.get(&unit).unwrap());
+                        s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
+                        s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
 
-               }
-          */
+                        let name_field = format!("forecast_{}_feel_temperature_{}", part.name, name_units.get(&unit).unwrap());
+                        let name_field_full = format!("forecast_{}_feel_temperature_{}_full", part.name, name_units.get(&unit).unwrap());
+                        s.serialize_field(string_to_static_str(name_field), &t_c.val())?;
+                        s.serialize_field(string_to_static_str(name_field_full), &format!("{}", t_c))?;
+                    }
+
+                    if let Some(humidity) = part.humidity {
+                        let name_field = format!("forecast_{}_humidity", i);
+                        s.serialize_field(string_to_static_str(name_field), &humidity)?;
+                        let name_field = format!("forecast_{}_humidity", part.name);
+                        s.serialize_field(string_to_static_str(name_field), &humidity)?;
+                    }
+
+                    if let Some(condition) = self.condition {
+                        let name_field = format!("forecast_{}_condition_code", i);
+                        s.serialize_field(string_to_static_str(name_field), &condition)?;
+                        let name_field = format!("forecast_{}_condition", i);
+                        s.serialize_field(string_to_static_str(name_field), &condition.name())?;
+                    }
+                }
+            }
+        }
         s.end()
     }
 }
