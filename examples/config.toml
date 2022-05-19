@@ -1,0 +1,5 @@
+# Yandex | openweathermap
+provider = "Yandex"
+
+# Output format
+display = "{{ temp_celcius }}C"
