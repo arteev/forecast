@@ -18,6 +18,7 @@ pub struct WeatherInfo {
     pub icon: Option<String>,
     pub condition: Option<Condition>,
     pub forecasts: Option<Forecast>,
+    pub daytime: Option<Daytime>,
 }
 
 fn default_created_at() -> SystemTime {
@@ -37,6 +38,7 @@ pub struct ForecastPart {
     pub icon: Option<String>,
     pub condition: Option<Condition>,
     pub feels_like: Option<Temperature>,
+    pub daytime: Option<Daytime>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -123,4 +125,35 @@ impl Condition {
             Condition::ThunderstormWithHail => "thunderstorm with hail".to_string(),
         }
     }
+
+    pub fn icon(&self, is_night: Daytime) -> char {
+        match self {
+            Condition::Clear => if is_night == Daytime::Night { '' } else { '' },
+            Condition::PartlyCloudy => if is_night == Daytime::Night { '' } else { '' },
+            Condition::Cloudy => '',
+            Condition::Overcast => '',
+            Condition::Drizzle => ' ',
+            Condition::LightRain => if is_night == Daytime::Night { '' } else { '' },
+            Condition::Rain => if is_night == Daytime::Night { '' } else { '' },
+            Condition::ModerateRain => if is_night == Daytime::Night { '' } else { '' },
+            Condition::HeavyRain => if is_night == Daytime::Night { '' } else { '' },
+            Condition::ContinuousHeavyRain => if is_night == Daytime::Night { '' } else { '' },
+            Condition::Showers => if is_night == Daytime::Night { '' } else { '' },
+            Condition::WetSnow => if is_night == Daytime::Night { '' } else { '' },
+            Condition::LightSnow => if is_night == Daytime::Night { '' } else { '' },
+            Condition::Snow => if is_night == Daytime::Night { '' } else { '' },
+            Condition::SnowShowers => if is_night == Daytime::Night { '' } else { '' },
+            Condition::Hail => ' ',
+            Condition::Thunderstorm => if is_night == Daytime::Night { '' } else { '' },
+            Condition::ThunderstormWithRain => if is_night == Daytime::Night { '' } else { '' },
+            Condition::ThunderstormWithHail => if is_night == Daytime::Night { '' } else { '' },
+        }
+    }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum Daytime {
+    Day,
+    Night,
 }

@@ -11,7 +11,7 @@ use serde::ser::SerializeStruct;
 use crate::Error;
 use crate::temperature::Temperature;
 use crate::temperature::Unit::*;
-use crate::weather::weather::{Condition, Forecast, ForecastPart, WeatherInfo};
+use crate::weather::weather::{Condition, Daytime, Forecast, ForecastPart, WeatherInfo};
 
 const TEMPLATE_DEBUG: &str = r#"
 Weather template variables:
@@ -36,8 +36,10 @@ Weather template variables:
     feel_temperature_fahrenheit_full: {{ feel_temperature_fahrenheit_full }}
     condition: {{ condition }}
     condition_code: {{ condition_code }}
+    condition_icon: {{ condition_icon }}
     icon: {{ icon }}
     icon_url: {{ icon_url }}
+
 
 
     forecast_count: {{ forecast_count }}
@@ -57,9 +59,10 @@ Weather template variables:
     forecast_0_feel_temperature_fahrenheit_full: {{ forecast_0_feel_temperature_fahrenheit_full }}
     forecast_0_condition: {{ forecast_0_condition }}
     forecast_0_condition_code: {{ forecast_0_condition_code }}
+    forecast_0_condition_icon: {{ forecast_0_condition_icon }}
     forecast_0_icon: {{ forecast_0_icon }}
     forecast_0_icon_url: {{ forecast_0_icon_url }}
-    
+
     forecast_1_name: {{ forecast_1_name }}
     forecast_1_temperature_celsius: {{ forecast_1_temperature_celsius }}
     forecast_1_temperature_celsius_full: {{ forecast_1_temperature_celsius_full }}
@@ -75,6 +78,7 @@ Weather template variables:
     forecast_1_feel_temperature_fahrenheit: {{ forecast_1_feel_temperature_fahrenheit }}
     forecast_1_feel_temperature_fahrenheit_full: {{ forecast_1_feel_temperature_fahrenheit_full }}
     forecast_1_condition: {{ forecast_1_condition }}
+    forecast_1_condition_icon: {{ forecast_1_condition_icon }}
     forecast_1_condition_code: {{ forecast_1_condition_code }}
     forecast_1_icon: {{ forecast_1_icon }}
     forecast_1_icon_url: {{ forecast_1_icon_url }}
@@ -90,6 +94,7 @@ struct WeatherInfoTemplate {
     condition: Option<Condition>,
     forecasts: Option<Forecast>,
     icon: Option<String>,
+    daytime: Option<Daytime>,
 }
 
 
@@ -108,6 +113,7 @@ impl WeatherInfoTemplate {
                     temp: p.temp,
                     humidity: p.humidity,
                     icon: p.icon.clone(),
+                    daytime: p.daytime,
                 });
             }
             f = Some(fv)
@@ -122,6 +128,7 @@ impl WeatherInfoTemplate {
             condition: w.condition,
             forecasts: f,
             icon: w.icon.clone(),
+            daytime: w.daytime,
         }
     }
 }
@@ -162,6 +169,11 @@ impl Serialize for WeatherInfoTemplate {
         }
         if let Some(condition) = self.condition {
             s.serialize_field("condition_code", &condition)?;
+
+            if let Some(daytime) = self.daytime {
+                let icon = condition.icon(daytime);
+                s.serialize_field("condition_icon", &icon)?;
+            }
             s.serialize_field("condition", &condition.name())?;
         }
 
@@ -212,9 +224,16 @@ impl Serialize for WeatherInfoTemplate {
                         s.serialize_field(string_to_static_str(name_field), &humidity)?;
                     }
 
-                    if let Some(condition) = self.condition {
+                    if let Some(condition) = part.condition {
                         let name_field = format!("forecast_{}_condition_code", i);
                         s.serialize_field(string_to_static_str(name_field), &condition)?;
+
+                        if let Some(daytime) = part.daytime {
+                            let icon = condition.icon(daytime);
+                            let name_field = format!("forecast_{}_condition_icon", i);
+                            s.serialize_field(string_to_static_str(name_field), &icon)?;
+                        }
+
                         let name_field = format!("forecast_{}_condition", i);
                         s.serialize_field(string_to_static_str(name_field), &condition.name())?;
                     }

@@ -11,7 +11,7 @@ use crate::Error::InvalidRequest;
 use crate::temperature::Temperature;
 use crate::temperature::Unit::Celsius;
 use crate::weather::provider::{WeatherGetter, WeatherQueryType};
-use crate::weather::weather::{Condition, Forecast, ForecastPart, WeatherInfo};
+use crate::weather::weather::{Condition, Daytime, Forecast, ForecastPart, WeatherInfo};
 
 const API_URL: &str = "https://api.weather.yandex.ru/v2/informers?";
 
@@ -80,6 +80,7 @@ fn parse(response: Value) -> Option<WeatherInfo> {
         icon: Some(response["fact"]["icon"].as_str()?.to_string()),
         condition: parse_condition(response["fact"]["condition"].as_str()),
         forecasts: parse_forecast(&response["forecast"]),
+        daytime: parse_daytime(response["fact"]["daytime"].as_str()),
     })
 }
 
@@ -98,6 +99,7 @@ fn parse_forecast(response: &Value) -> Option<Forecast> {
             humidity: part["humidity"].as_u64(),
             condition: parse_condition(part["condition"].as_str()),
             icon: Some(part["icon"].as_str()?.to_string()),
+            daytime: parse_daytime(part["daytime"].as_str()),
         };
 
         forecast.parts.push(forecast_part);
@@ -131,4 +133,15 @@ fn parse_condition(s: Option<&str>) -> Option<Condition> {
         });
     }
     None
+}
+
+fn parse_daytime(s: Option<&str>) -> Option<Daytime> {
+    match s {
+        Some(s) => match s {
+            "d" => Some(Daytime::Day),
+            "n" => Some(Daytime::Night),
+            _ => None,
+        },
+        None => None,
+    }
 }
