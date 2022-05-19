@@ -13,6 +13,8 @@ use crate::temperature::Temperature;
 use crate::temperature::Unit::*;
 use crate::weather::weather::{Condition, Forecast, ForecastPart, WeatherInfo};
 
+const TEMPLATE_ICON_URL: &str = r#"https://yastatic.net/weather/i/icons/funky/dark/{}.svg"#;
+
 const TEMPLATE_DEBUG: &str = r#"
 Weather template variables:
 
@@ -74,6 +76,9 @@ Weather template variables:
     forecast_1_condition: {{ forecast_1_condition }}
     forecast_1_condition_code: {{ forecast_1_condition_code }}
 
+    icon: {{ icon }}
+    icon_url: {{ icon_url }}
+
      "#;
 
 struct WeatherInfoTemplate {
@@ -83,8 +88,8 @@ struct WeatherInfoTemplate {
     feels_like: Option<Temperature>,
     humidity: Option<u64>,
     condition: Option<Condition>,
-
     forecasts: Option<Forecast>,
+    icon: Option<String>,
 }
 
 
@@ -116,6 +121,7 @@ impl WeatherInfoTemplate {
             humidity: w.humidity,
             condition: w.condition,
             forecasts: f,
+            icon: w.icon.clone(),
         }
     }
 }
@@ -159,9 +165,14 @@ impl Serialize for WeatherInfoTemplate {
             s.serialize_field("condition", &condition.name())?;
         }
 
+        if let Some(icon) = &self.icon {
+            s.serialize_field("icon", icon)?;
+            let value = format!("https://yastatic.net/weather/i/icons/funky/dark/{}.svg", *icon);
+            s.serialize_field("icon_url", &value);
+        }
+
 
         if let Some(forecasts) = &self.forecasts {
-
             s.serialize_field("forecast_count", &forecasts.parts.len())?;
 
             for (i, part) in forecasts.parts.iter().enumerate() {
