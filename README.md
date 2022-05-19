@@ -36,7 +36,7 @@ user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81
 ### Polybar
 You can define your new module like this:
 
-```toml
+```
 ...
 [bar/example]
 font-3 = weathericons:size=10;2
