@@ -13,8 +13,6 @@ use crate::temperature::Temperature;
 use crate::temperature::Unit::*;
 use crate::weather::weather::{Condition, Forecast, ForecastPart, WeatherInfo};
 
-const TEMPLATE_ICON_URL: &str = r#"https://yastatic.net/weather/i/icons/funky/dark/{}.svg"#;
-
 const TEMPLATE_DEBUG: &str = r#"
 Weather template variables:
 
@@ -38,10 +36,11 @@ Weather template variables:
     feel_temperature_fahrenheit_full: {{ feel_temperature_fahrenheit_full }}
     condition: {{ condition }}
     condition_code: {{ condition_code }}
+    icon: {{ icon }}
+    icon_url: {{ icon_url }}
 
 
     forecast_count: {{ forecast_count }}
-    
     forecast_0_name: {{ forecast_0_name }}
     forecast_0_temperature_celsius: {{ forecast_0_temperature_celsius }}
     forecast_0_temperature_celsius_full: {{ forecast_0_temperature_celsius_full }}
@@ -58,6 +57,8 @@ Weather template variables:
     forecast_0_feel_temperature_fahrenheit_full: {{ forecast_0_feel_temperature_fahrenheit_full }}
     forecast_0_condition: {{ forecast_0_condition }}
     forecast_0_condition_code: {{ forecast_0_condition_code }}
+    forecast_0_icon: {{ forecast_0_icon }}
+    forecast_0_icon_url: {{ forecast_0_icon_url }}
     
     forecast_1_name: {{ forecast_1_name }}
     forecast_1_temperature_celsius: {{ forecast_1_temperature_celsius }}
@@ -75,9 +76,8 @@ Weather template variables:
     forecast_1_feel_temperature_fahrenheit_full: {{ forecast_1_feel_temperature_fahrenheit_full }}
     forecast_1_condition: {{ forecast_1_condition }}
     forecast_1_condition_code: {{ forecast_1_condition_code }}
-
-    icon: {{ icon }}
-    icon_url: {{ icon_url }}
+    forecast_1_icon: {{ forecast_1_icon }}
+    forecast_1_icon_url: {{ forecast_1_icon_url }}
 
      "#;
 
@@ -168,7 +168,7 @@ impl Serialize for WeatherInfoTemplate {
         if let Some(icon) = &self.icon {
             s.serialize_field("icon", icon)?;
             let value = format!("https://yastatic.net/weather/i/icons/funky/dark/{}.svg", *icon);
-            s.serialize_field("icon_url", &value);
+            s.serialize_field("icon_url", &value)?;
         }
 
 
@@ -217,6 +217,14 @@ impl Serialize for WeatherInfoTemplate {
                         s.serialize_field(string_to_static_str(name_field), &condition)?;
                         let name_field = format!("forecast_{}_condition", i);
                         s.serialize_field(string_to_static_str(name_field), &condition.name())?;
+                    }
+
+                    if let Some(icon) = &part.icon {
+                        let name_field = format!("forecast_{}_icon", i);
+                        s.serialize_field(string_to_static_str(name_field), icon)?;
+                        let value = format!("https://yastatic.net/weather/i/icons/funky/dark/{}.svg", *icon);
+                        let name_field = format!("forecast_{}_icon_url", i);
+                        s.serialize_field(string_to_static_str(name_field), &value)?;
                     }
                 }
             }
