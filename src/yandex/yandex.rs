@@ -27,10 +27,14 @@ impl Yandex {
 
 impl WeatherGetter for Yandex {
     fn get(&self, _: Vec<WeatherQueryType>) -> Result<WeatherInfo, Error> {
-        let query_params = QueryParamsInformers {
+        let mut query_params = QueryParamsInformers {
             lon: self.config.lon.as_str(),
             lat: self.config.lat.as_str(),
+            lang: None,
         };
+        if let Some(ref lang) = self.config.lang {
+            query_params.lang = Some(lang.as_str())
+        }
 
         let params = serde_qs::to_string(&query_params).
             expect("failed to format query params");
@@ -64,6 +68,7 @@ impl WeatherGetter for Yandex {
 struct QueryParamsInformers<'a> {
     lat: &'a str,
     lon: &'a str,
+    lang: Option<&'a str>,
 }
 
 fn parse(response: Value) -> Option<WeatherInfo> {
