@@ -1,6 +1,8 @@
 
 Weather forecast
 
+![](screenshots/img.png)
+
 ### Setup
 
 TODO
