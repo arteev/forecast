@@ -1,5 +1,5 @@
 
-Weather forecast
+Getting the weather forecast from yandex for embedding in polybar
 
 ![](screenshots/img.png)
 

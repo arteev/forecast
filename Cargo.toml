@@ -1,7 +1,26 @@
 [package]
-name = "forecast"
+name = "forecast-get"
 version = "0.1.0"
 edition = "2021"
+include = [
+    "src/**/*",
+    "examples/*",
+    "Cargo.toml",
+    "README.md",
+    "LICENCE"
+]
+homepage = "https://github.com/arteev/forecast"
+description = "Getting the weather forecast from yandex for embedding in polybar"
+repository = "https://github.com/arteev/forecast"
+
+keywords = [
+    "cli",
+    "forecast",
+    "weather"
+]
+categories = ["command-line-interface"]
+license = "MIT"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

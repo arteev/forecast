@@ -1,5 +1,16 @@
-# Yandex | openweathermap
+# Yandex
 provider = "Yandex"
-
 # Output format
-display = "{{ temp_celcius }}C"
+
+display = "{{ condition_icon }}{{ temperature_celsius_full }}[{{ feel_temperature_celsius }}]{{ humidity }}% >> {{ forecast_0_condition_icon }}{{ forecast_0_temperature_celsius_full }} "
+
+[cache]
+enabled = true
+expiration = "30m"
+
+[yandex]
+api_key = "YOUR_API_KEY"
+lat = "57.1522"
+lon = "65.5272"
+lang = "en_EN"
+user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0"
