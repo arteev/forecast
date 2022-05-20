@@ -5,7 +5,18 @@ Getting the weather forecast from yandex for embedding in polybar
 
 ### Setup
 
-TODO
+1. [Install Rust and Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+
+2. 
+```shell
+   cargo install forecast-get
+```
+
+3. Trying:
+
+```shell
+  forecast-get -V
+```
 
 ### Providers
 * [yandex](https://yandex.ru/dev/weather/doc/dg/concepts/forecast-info.html)
@@ -48,7 +59,7 @@ modules-center = weather
 [module/weather]
 type = custom/script
 exec-if = ping api.weather.yandex.ru -c 1
-exec = /path/to/polybar-forecast
+exec = /path/to/forecast-get
 interval = 300
 label-font = 3 
 click-left = xdg-open https://yandex.ru/pogoda/?utm_source=home&utm_content=main_informer&utm_campaign=informer&utm_medium=web&utm_term=main_number
